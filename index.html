@@ -4,64 +4,94 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lottery Shift Log</title>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
-.header { background: linear-gradient(135deg,#16213e,#0f3460); padding: 15px 20px; text-align: center; border-bottom: 3px solid #e94560; }
-.header h1 { color: #e94560; font-size: 1.8em; letter-spacing: 2px; }
-.header p { color: #a8b2d8; font-size: 0.85em; margin-top: 4px; }
-.container { max-width: 900px; margin: 0 auto; padding: 15px; }
-.card { background: #16213e; border: 1px solid #0f3460; border-radius: 10px; padding: 18px; margin-bottom: 15px; }
-.card h2 { color: #e94560; font-size: 1em; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; }
-.form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.form-group { flex: 1; min-width: 140px; }
-.form-group label { display: block; font-size: 0.75em; color: #a8b2d8; margin-bottom: 4px; text-transform: uppercase; }
-.form-group input, .form-group select { width: 100%; padding: 8px 10px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; color: #eee; font-size: 0.9em; }
-.scratch-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 10px; }
-.scratch-item { background: #0f3460; border: 1px solid #1a4a8a; border-radius: 8px; padding: 12px; }
-.game-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.game-num { background: #e94560; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: bold; flex-shrink: 0; }
-.game-title { font-size: 0.8em; color: #a8b2d8; font-weight: bold; }
-.game-denom { font-size: 0.75em; color: #e94560; }
-.barcode-section { display: flex; gap: 10px; flex-wrap: wrap; }
-.barcode-upload { flex: 1; min-width: 200px; }
-.barcode-preview { flex: 1; min-width: 200px; text-align: center; }
-.barcode-preview img { max-width: 100%; max-height: 120px; border-radius: 6px; border: 1px solid #1a4a8a; }
-.upload-btn { display: inline-block; padding: 8px 14px; background: #e94560; color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.8em; text-align: center; width: 100%; margin-bottom: 8px; }
-input[type="file"] { display: none; }
-.totals-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 10px; }
-.total-box { background: #0f3460; border-radius: 8px; padding: 14px; text-align: center; }
-.total-box .label { font-size: 0.75em; color: #a8b2d8; text-transform: uppercase; margin-bottom: 6px; }
-.total-box .value { font-size: 1.4em; font-weight: bold; color: #4ecca3; }
-.total-box.grand { border: 2px solid #e94560; }
-.total-box.grand .value { color: #e94560; font-size: 1.6em; }
-.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
-.btn-primary { background: #e94560; color: #fff; }
-.btn-secondary { background: #0f3460; color: #eee; border: 1px solid #1a4a8a; }
-.btn-success { background: #4ecca3; color: #16213e; }
-#login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.login-card { background: #16213e; border: 1px solid #e94560; border-radius: 12px; padding: 30px; max-width: 360px; width: 90%; text-align: center; }
-.login-card h2 { color: #e94560; margin-bottom: 6px; }
-.login-card p { color: #a8b2d8; font-size: 0.85em; margin-bottom: 16px; }
-.login-card input { width: 100%; padding: 10px; margin-bottom: 12px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; color: #eee; font-size: 0.9em; text-align: center; }
-.pin-dots { font-size: 2em; letter-spacing: 8px; color: #e94560; min-height: 40px; margin-bottom: 12px; }
-.pin-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
-.pin-key { padding: 14px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; cursor: pointer; font-size: 1em; color: #eee; font-weight: bold; }
-.pin-key.clear { color: #e94560; }
-.mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-.mode-tab { flex: 1; padding: 8px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; cursor: pointer; font-size: 0.85em; color: #a8b2d8; text-align: center; }
-.mode-tab.active { background: #e94560; border-color: #e94560; color: #fff; }
-.scratch-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.calc-result { background: #0f3460; border-radius: 6px; padding: 6px 10px; font-size: 0.8em; color: #4ecca3; margin-top: 4px; }
-.denom-select { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
-.denom-btn { padding: 3px 8px; border: 1px solid #1a4a8a; background: #16213e; color: #a8b2d8; border-radius: 4px; cursor: pointer; font-size: 0.72em; }
-.denom-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
-.neg-hint { font-size: 0.7em; color: #a8b2d8; margin-top: 3px; }
-@media(max-width:500px){.form-row{flex-direction:column}.scratch-grid{grid-template-columns:1fr}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh}
+.header{background:linear-gradient(135deg,#16213e,#0f3460);padding:15px 20px;text-align:center;border-bottom:3px solid #e94560}
+.header h1{color:#e94560;font-size:1.8em;letter-spacing:2px}
+.header p{color:#a8b2d8;font-size:0.85em;margin-top:4px}
+.container{max-width:900px;margin:0 auto;padding:15px}
+.card{background:#16213e;border:1px solid #0f3460;border-radius:10px;padding:18px;margin-bottom:15px}
+.card h2{color:#e94560;font-size:1em;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #0f3460;padding-bottom:8px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.form-group{flex:1;min-width:140px}
+.form-group label{display:block;font-size:0.75em;color:#a8b2d8;margin-bottom:4px;text-transform:uppercase}
+.form-group input,.form-group select{width:100%;padding:8px 10px;background:#0f3460;border:1px solid #1a4a8a;border-radius:6px;color:#eee;font-size:0.9em}
+/* BOOK LIST */
+.book-list{display:flex;flex-direction:column;gap:6px}
+.book-row{background:#0f3460;border:1px solid #1a4a8a;border-radius:8px;overflow:hidden}
+.book-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none}
+.book-header:hover{background:#1a4a8a}
+.book-num{background:#e94560;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:bold;flex-shrink:0}
+.book-summary{flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.book-name{font-size:0.85em;font-weight:bold;color:#eee}
+.book-denom-badge{background:#e94560;color:#fff;border-radius:10px;padding:2px 8px;font-size:0.7em;font-weight:bold}
+.book-sold-badge{background:#4ecca3;color:#16213e;border-radius:10px;padding:2px 8px;font-size:0.7em;font-weight:bold;display:none}
+.book-chevron{color:#a8b2d8;font-size:0.8em;margin-left:auto;transition:transform 0.2s}
+.book-chevron.open{transform:rotate(180deg)}
+.book-body{display:none;padding:12px;border-top:1px solid #1a4a8a}
+.book-body.open{display:block}
+.denom-select{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.denom-btn{padding:3px 8px;border:1px solid #1a4a8a;background:#16213e;color:#a8b2d8;border-radius:4px;cursor:pointer;font-size:0.72em}
+.denom-btn.active{background:#e94560;border-color:#e94560;color:#fff}
+.scratch-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.calc-result{background:#16213e;border-radius:6px;padding:6px 10px;font-size:0.8em;color:#4ecca3;margin-top:4px}
+.scan-row{display:flex;gap:6px;margin-bottom:8px}
+.scan-btn{flex:1;padding:7px;background:#0f3460;border:1px solid #4ecca3;border-radius:6px;color:#4ecca3;font-size:0.75em;font-weight:bold;cursor:pointer;text-align:center}
+.scan-btn:hover{background:#4ecca3;color:#16213e}
+/* BARCODE MODAL */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:2000;flex-direction:column}
+.modal-overlay.open{display:flex}
+.modal-box{background:#16213e;border:2px solid #e94560;border-radius:12px;padding:20px;max-width:420px;width:94%;text-align:center}
+.modal-box h3{color:#e94560;margin-bottom:10px}
+.modal-box p{color:#a8b2d8;font-size:0.82em;margin-bottom:12px}
+#scanner-video{width:100%;border-radius:8px;border:2px solid #4ecca3;margin-bottom:10px;max-height:280px;object-fit:cover}
+.scanned-result{background:#0f3460;border-radius:6px;padding:8px;margin-bottom:10px;font-size:0.85em;color:#4ecca3;min-height:32px}
+/* TOTALS */
+.totals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.total-box{background:#0f3460;border-radius:8px;padding:14px;text-align:center}
+.total-box .label{font-size:0.75em;color:#a8b2d8;text-transform:uppercase;margin-bottom:6px}
+.total-box .value{font-size:1.4em;font-weight:bold;color:#4ecca3}
+.total-box.grand{border:2px solid #e94560}
+.total-box.grand .value{color:#e94560;font-size:1.6em}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.btn{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:bold}
+.btn-primary{background:#e94560;color:#fff}
+.btn-secondary{background:#0f3460;color:#eee;border:1px solid #1a4a8a}
+.btn-success{background:#4ecca3;color:#16213e}
+.neg-hint{font-size:0.7em;color:#a8b2d8;margin-top:3px}
+/* BARCODE PHOTO */
+.barcode-section{display:flex;gap:10px;flex-wrap:wrap}
+.barcode-upload{flex:1;min-width:200px}
+.barcode-preview{flex:1;min-width:200px;text-align:center}
+.barcode-preview img{max-width:100%;max-height:120px;border-radius:6px;border:1px solid #1a4a8a}
+.upload-btn{display:inline-block;padding:8px 14px;background:#e94560;color:#fff;border-radius:6px;cursor:pointer;font-size:0.8em;text-align:center;width:100%;margin-bottom:8px}
+input[type="file"]{display:none}
+/* LOGIN */
+#login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-card{background:#16213e;border:1px solid #e94560;border-radius:12px;padding:30px;max-width:360px;width:90%;text-align:center}
+.login-card h2{color:#e94560;margin-bottom:6px}
+.login-card p{color:#a8b2d8;font-size:0.85em;margin-bottom:16px}
+.login-card input{width:100%;padding:10px;margin-bottom:12px;background:#0f3460;border:1px solid #1a4a8a;border-radius:6px;color:#eee;font-size:0.9em;text-align:center}
+.pin-dots{font-size:2em;letter-spacing:8px;color:#e94560;min-height:40px;margin-bottom:12px}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.pin-key{padding:14px;background:#0f3460;border:1px solid #1a4a8a;border-radius:6px;cursor:pointer;font-size:1em;color:#eee;font-weight:bold}
+.pin-key.clear{color:#e94560}
+.mode-tabs{display:flex;gap:8px;margin-bottom:16px}
+.mode-tab{flex:1;padding:8px;background:#0f3460;border:1px solid #1a4a8a;border-radius:6px;cursor:pointer;font-size:0.85em;color:#a8b2d8;text-align:center}
+.mode-tab.active{background:#e94560;border-color:#e94560;color:#fff}
+/* COLLAPSE ALL BTN */
+.collapse-bar{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.collapse-bar span{font-size:0.75em;color:#a8b2d8;flex:1}
+.mini-btn{padding:4px 12px;background:#0f3460;border:1px solid #1a4a8a;border-radius:6px;color:#a8b2d8;font-size:0.75em;cursor:pointer}
+.mini-btn:hover{border-color:#e94560;color:#e94560}
+@media(max-width:500px){.form-row{flex-direction:column}.scratch-pair{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
 <div id="login-screen">
 <div class="login-card">
 <h2>Lottery Shift Log</h2>
@@ -87,17 +117,35 @@ input[type="file"] { display: none; }
 <div id="login-err" style="color:#e94560;font-size:0.8em;margin-top:8px;display:none"></div>
 </div>
 </div>
+
+<!-- SCANNER MODAL -->
+<div class="modal-overlay" id="scanner-modal">
+<div class="modal-box">
+<h3>Scan Barcode</h3>
+<p id="scan-instruction">Point camera at the book barcode</p>
+<video id="scanner-video" playsinline autoplay muted></video>
+<div class="scanned-result" id="scan-result">Waiting for scan...</div>
+<div style="display:flex;gap:8px;justify-content:center">
+<button class="btn btn-success" onclick="useScanResult()">Use This</button>
+<button class="btn btn-secondary" onclick="closeScanner()">Cancel</button>
+</div>
+</div>
+</div>
+
+<!-- MAIN APP -->
 <div id="main-app" style="display:none">
 <div class="header">
 <h1>LOTTERY SHIFT LOG</h1>
 <p id="banner">Cashier: -- | Started: --</p>
 </div>
 <div class="container">
+
+<!-- BARCODE PHOTO -->
 <div class="card">
 <h2>Scratch-Off Barcode Photo</h2>
 <div class="barcode-section">
 <div class="barcode-upload">
-<p style="font-size:0.8em;color:#a8b2d8;margin-bottom:8px">Capture or upload the scratch-off book barcode photo.</p>
+<p style="font-size:0.8em;color:#a8b2d8;margin-bottom:8px">Capture or upload the scratch-off book barcode photo for records.</p>
 <label class="upload-btn" for="bc-input">Take / Upload Photo</label>
 <input type="file" id="bc-input" accept="image/*" capture="environment" onchange="showBarcode(event)">
 <button class="btn btn-secondary" style="width:100%;font-size:0.8em" onclick="clearBarcode()">Clear Photo</button>
@@ -107,6 +155,8 @@ input[type="file"] { display: none; }
 </div>
 </div>
 </div>
+
+<!-- SHIFT INFO -->
 <div class="card">
 <h2>Shift Info</h2>
 <div class="form-row">
@@ -138,15 +188,23 @@ input[type="file"] { display: none; }
 </div>
 </div>
 </div>
+
+<!-- SCRATCH-OFF BOOKS -->
 <div class="card">
 <h2>Scratch-Off Books (34 Games)</h2>
-<p style="font-size:0.75em;color:#a8b2d8;margin-bottom:12px">Select denomination, enter start and end ticket numbers. Total Sold = Start minus End.</p>
-<div class="scratch-grid" id="scratch-grid"></div>
+<div class="collapse-bar">
+<span>Tap a book to expand. Scan barcode to auto-fill.</span>
+<button class="mini-btn" onclick="expandAll()">Expand All</button>
+<button class="mini-btn" onclick="collapseAll()">Collapse All</button>
+</div>
+<div class="book-list" id="book-list"></div>
 <div style="margin-top:14px;background:#0f3460;border-radius:8px;padding:14px;text-align:center">
 <div style="font-size:0.75em;color:#a8b2d8;text-transform:uppercase;margin-bottom:6px">Total Scratch-Off Sold</div>
 <div style="font-size:1.6em;font-weight:bold;color:#4ecca3" id="total-scratch">$0.00</div>
 </div>
 </div>
+
+<!-- CASH & DEBIT -->
 <div class="card">
 <h2>Cash and Debit Totals</h2>
 <div class="form-row">
@@ -162,6 +220,8 @@ input[type="file"] { display: none; }
 </div>
 </div>
 </div>
+
+<!-- TOTALS -->
 <div class="card">
 <h2>Shift Totals Summary</h2>
 <div class="totals-grid">
@@ -179,18 +239,25 @@ input[type="file"] { display: none; }
 <button class="btn btn-secondary" onclick="endShift()">End Shift</button>
 </div>
 </div>
+
+<!-- SAVED LOGS -->
 <div class="card" id="logs-card" style="display:none">
 <h2>Saved Logs This Shift</h2>
 <div id="logs-list"></div>
 </div>
+
 </div>
 </div>
+
 <script>
 const DENOMS=[1,2,3,5,10,20,25,30,50];
 let pinN='',pinE='',cashier='';
 let users=JSON.parse(localStorage.getItem('lu')||'{}');
 let logs=[];
+let scanTarget=null, scanField=null;
+let codeReader=null, scanStream=null;
 
+// ---- PIN ----
 function mkPad(id,dotsId,type,done){
   const p=document.getElementById(id);
   ['1','2','3','4','5','6','7','8','9','C','0','OK'].forEach(k=>{
@@ -199,22 +266,13 @@ function mkPad(id,dotsId,type,done){
     b.textContent=k;
     b.onclick=()=>{
       if(k==='OK'){done();return;}
-      if(type==='n'){
-        if(k==='C')pinN=pinN.slice(0,-1);
-        else if(pinN.length<4)pinN+=k;
-        upd(dotsId,pinN);
-      }else{
-        if(k==='C')pinE=pinE.slice(0,-1);
-        else if(pinE.length<4)pinE+=k;
-        upd(dotsId,pinE);
-      }
+      if(type==='n'){if(k==='C')pinN=pinN.slice(0,-1);else if(pinN.length<4)pinN+=k;upd(dotsId,pinN);}
+      else{if(k==='C')pinE=pinE.slice(0,-1);else if(pinE.length<4)pinE+=k;upd(dotsId,pinE);}
     };
     p.appendChild(b);
   });
 }
-
-function upd(id,pin){document.getElementById(id).textContent='*'.repeat(pin.length)+'. '.repeat(4-pin.length).trim();}
-
+function upd(id,pin){document.getElementById(id).textContent='*'.repeat(pin.length)+'. '.repeat(4-pin.length).trimEnd();}
 function setMode(m){
   document.getElementById('tab-new').classList.toggle('active',m==='new');
   document.getElementById('tab-existing').classList.toggle('active',m==='existing');
@@ -222,26 +280,20 @@ function setMode(m){
   document.getElementById('login-existing').style.display=m==='existing'?'block':'none';
   document.getElementById('login-err').style.display='none';
 }
-
 function err(msg){const e=document.getElementById('login-err');e.textContent=msg;e.style.display='block';}
-
 function startNew(){
   const i=document.getElementById('init-input').value.trim().toUpperCase();
   if(!i)return err('Enter your initials.');
   if(pinN.length!==4)return err('Enter a 4-digit PIN.');
-  users[i]=pinN;localStorage.setItem('lu',JSON.stringify(users));
-  launch(i);
+  users[i]=pinN;localStorage.setItem('lu',JSON.stringify(users));launch(i);
 }
-
 function loginRet(){
   const i=document.getElementById('ret-input').value.trim().toUpperCase();
   if(!i)return err('Enter your initials.');
   if(!users[i])return err('Not found. Use New Shift tab.');
   if(users[i]!==pinE)return err('Wrong PIN.');
-  pinE='';document.getElementById('dots-existing').textContent='. . . .';
-  launch(i);
+  pinE='';document.getElementById('dots-existing').textContent='. . . .';launch(i);
 }
-
 function launch(i){
   cashier=i;
   document.getElementById('login-screen').style.display='none';
@@ -249,40 +301,86 @@ function launch(i){
   document.getElementById('disp-initials').value=i;
   document.getElementById('banner').textContent='Cashier: '+i+' | Started: '+new Date().toLocaleString();
   document.getElementById('shift-date').value=new Date().toISOString().split('T')[0];
-  buildGrid();calc();
+  buildBooks();calc();
 }
 
-function buildGrid(){
-  const g=document.getElementById('scratch-grid');g.innerHTML='';
+// ---- BOOK LIST (Collapsible) ----
+function buildBooks(){
+  const list=document.getElementById('book-list');
+  list.innerHTML='';
   for(let i=1;i<=34;i++){
-    const d=document.createElement('div');d.className='scratch-item';
-    d.innerHTML='<div class="game-header"><div class="game-num">'+i+'</div><div><div class="game-title">Book #'+i+'</div><div class="game-denom" id="dl-'+i+'">$1</div></div></div><div class="denom-select" id="db-'+i+'"></div><div class="scratch-pair"><div class="form-group"><label>Start #</label><input type="number" id="s'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div><div class="form-group"><label>End #</label><input type="number" id="e'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div></div><div class="calc-result" id="r'+i+'">Sold: 0 = $0.00</div>';
-    g.appendChild(d);
-    const c=document.getElementById('db-'+i);
-    DENOMS.forEach(dn=>{
-      const b=document.createElement('button');
-      b.className='denom-btn'+(dn===1?' active':'');
-      b.textContent='$'+dn;
-      b.onclick=()=>{c.querySelectorAll('.denom-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('dl-'+i).textContent='$'+dn;cs(i);};
-      c.appendChild(b);
-    });
+    const row=document.createElement('div');
+    row.className='book-row';
+    row.id='book-row-'+i;
+    row.innerHTML=
+      '<div class="book-header" onclick="toggleBook('+i+')" id="book-hdr-'+i+'">'+
+        '<div class="book-num">'+i+'</div>'+
+        '<div class="book-summary">'+
+          '<span class="book-name">Book #'+i+'</span>'+
+          '<span class="book-denom-badge" id="bdg-'+i+'">$1</span>'+
+          '<span class="book-sold-badge" id="sold-bdg-'+i+'"></span>'+
+        '</div>'+
+        '<span class="book-chevron" id="chev-'+i+'">&#9660;</span>'+
+      '</div>'+
+      '<div class="book-body" id="book-body-'+i+'">'+
+        '<div class="scan-row">'+
+          '<button class="scan-btn" onclick="event.stopPropagation();openScanner('+i+','start')">&#128247; Scan START ticket</button>'+
+          '<button class="scan-btn" onclick="event.stopPropagation();openScanner('+i+','end')">&#128247; Scan END ticket</button>'+
+        '</div>'+
+        '<div class="denom-select" id="db-'+i+'"></div>'+
+        '<div class="scratch-pair">'+
+          '<div class="form-group"><label>Start #</label><input type="number" id="s'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div>'+
+          '<div class="form-group"><label>End #</label><input type="number" id="e'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div>'+
+        '</div>'+
+        '<div class="calc-result" id="r'+i+'">Sold: 0 tickets = $0.00</div>'+
+      '</div>';
+    list.appendChild(row);
+    buildDenoms(i);
   }
+}
+
+function toggleBook(i){
+  const body=document.getElementById('book-body-'+i);
+  const chev=document.getElementById('chev-'+i);
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+function expandAll(){for(let i=1;i<=34;i++){document.getElementById('book-body-'+i).classList.add('open');document.getElementById('chev-'+i).classList.add('open');}}
+function collapseAll(){for(let i=1;i<=34;i++){document.getElementById('book-body-'+i).classList.remove('open');document.getElementById('chev-'+i).classList.remove('open');}}
+
+function buildDenoms(i){
+  const c=document.getElementById('db-'+i);
+  DENOMS.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='denom-btn'+(d===1?' active':'');
+    b.textContent='$'+d;
+    b.onclick=(e)=>{
+      e.stopPropagation();
+      c.querySelectorAll('.denom-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('bdg-'+i).textContent='$'+d;
+      cs(i);
+    };
+    c.appendChild(b);
+  });
 }
 
 function gd(i){const b=document.querySelector('#db-'+i+' .denom-btn.active');return b?+b.textContent.slice(1):1;}
 
 function cs(i){
   const s=+document.getElementById('s'+i).value||0;
-  const e=+document.getElementById('e'+i).value||0;
-  const sold=s-e;
-  document.getElementById('r'+i).textContent='Sold: '+sold+' = $'+(sold*gd(i)).toFixed(2);
+  const e2=+document.getElementById('e'+i).value||0;
+  const sold=s-e2;const total=sold*gd(i);
+  document.getElementById('r'+i).textContent='Sold: '+sold+' tickets = $'+total.toFixed(2);
+  const sb=document.getElementById('sold-bdg-'+i);
+  if(sold!==0){sb.style.display='inline';sb.textContent='$'+total.toFixed(2);}
+  else{sb.style.display='none';}
   calc();
 }
 
 function calc(){
   let sc=0;
-  for(let i=1;i<=34;i++){sc+=(+document.getElementById('s'+i)?.value||0)-(+document.getElementById('e'+i)?.value||0);sc=sc;} 
-  sc=0;
   for(let i=1;i<=34;i++){const sv=+document.getElementById('s'+i)?.value||0;const ev=+document.getElementById('e'+i)?.value||0;sc+=(sv-ev)*gd(i);}
   const on=+document.getElementById('online-sales')?.value||0;
   const cd=+document.getElementById('cash-drop')?.value||0;
@@ -299,6 +397,69 @@ function calc(){
   document.getElementById('grand').textContent=f(grand);
 }
 
+// ---- BARCODE SCANNER ----
+function openScanner(bookNum, field){
+  scanTarget=bookNum;
+  scanField=field;
+  document.getElementById('scan-instruction').textContent=
+    'Point camera at the '+(field==='start'?'START':'END')+' ticket barcode for Book #'+bookNum;
+  document.getElementById('scan-result').textContent='Waiting for scan...';
+  document.getElementById('scanner-modal').classList.add('open');
+  startCamera();
+}
+
+async function startCamera(){
+  try{
+    if(typeof ZXing==='undefined'){
+      document.getElementById('scan-result').textContent='Scanner library loading, please wait...';
+      setTimeout(startCamera,1500);return;
+    }
+    codeReader=new ZXing.BrowserMultiFormatReader();
+    const devices=await ZXing.BrowserCodeReader.listVideoInputDevices();
+    const backCam=devices.find(d=>d.label.toLowerCase().includes('back')||d.label.toLowerCase().includes('rear'))||devices[devices.length-1];
+    const deviceId=backCam?backCam.deviceId:undefined;
+    await codeReader.decodeFromVideoDevice(deviceId,'scanner-video',(result,err)=>{
+      if(result){
+        const text=result.getText();
+        document.getElementById('scan-result').textContent='Scanned: '+text;
+        // Parse: try to extract numeric portion
+        const nums=text.replace(/D+/g,' ').trim().split(/s+/).filter(Boolean);
+        if(nums.length>0){
+          // Use last numeric sequence as ticket number
+          const ticketNum=nums[nums.length-1];
+          document.getElementById('scan-result').textContent='Scanned: '+text+' → Ticket #: '+ticketNum;
+          document.getElementById('scan-result').dataset.ticketNum=ticketNum;
+        }
+      }
+    });
+  }catch(e){
+    document.getElementById('scan-result').textContent='Camera error: '+e.message+'. Enter numbers manually.';
+  }
+}
+
+function useScanResult(){
+  const res=document.getElementById('scan-result');
+  const ticketNum=res.dataset.ticketNum||'';
+  if(ticketNum&&scanTarget){
+    const fieldId=scanField==='start'?'s'+scanTarget:'e'+scanTarget;
+    document.getElementById(fieldId).value=ticketNum;
+    // Auto-expand the book
+    document.getElementById('book-body-'+scanTarget).classList.add('open');
+    document.getElementById('chev-'+scanTarget).classList.add('open');
+    cs(scanTarget);
+  }
+  closeScanner();
+}
+
+function closeScanner(){
+  document.getElementById('scanner-modal').classList.remove('open');
+  if(codeReader){try{codeReader.reset();}catch(e){}}
+  codeReader=null;
+  const vid=document.getElementById('scanner-video');
+  if(vid.srcObject){vid.srcObject.getTracks().forEach(t=>t.stop());vid.srcObject=null;}
+}
+
+// ---- BARCODE PHOTO ----
 function showBarcode(ev){
   const file=ev.target.files[0];if(!file)return;
   const r=new FileReader();
@@ -307,24 +468,22 @@ function showBarcode(ev){
 }
 function clearBarcode(){document.getElementById('bc-input').value='';document.getElementById('bc-preview').innerHTML='<p style="font-size:0.75em;color:#a8b2d8">No photo yet</p>';}
 
+// ---- LOG / SAVE ----
 function saveLog(){
   const entry={cashier,date:document.getElementById('shift-date').value,shift:document.getElementById('shift-period').value,drop:document.getElementById('cash-drop').value,online:document.getElementById('online-sales').value,cash:document.getElementById('cash-slot').value,debit:document.getElementById('debit-slot').value,grand:document.getElementById('grand').textContent,time:new Date().toLocaleString()};
   logs.push(entry);renderLogs();
   alert('Saved! '+entry.cashier+' | '+entry.grand);
 }
-
 function renderLogs(){
   document.getElementById('logs-card').style.display='block';
   document.getElementById('logs-list').innerHTML=logs.map((e,i)=>'<div style="background:#0f3460;border-radius:6px;padding:10px;margin-bottom:8px;font-size:0.82em"><strong style="color:#4ecca3">#'+(i+1)+' '+e.cashier+' | '+e.date+' '+e.shift+'</strong><span style="float:right;color:#e94560;font-weight:bold">'+e.grand+'</span><br><span style="color:#a8b2d8">Drop:'+e.drop+' Online:'+e.online+' Cash:'+e.cash+' Debit:'+e.debit+'</span><br><span style="color:#555;font-size:0.85em">'+e.time+'</span></div>').join('');
 }
-
 function clearAll(){
-  if(!confirm('Clear for new entry?'))return;
+  if(!confirm('Clear all entries for a new log entry?'))return;
   ['cash-drop','online-sales','cash-slot','debit-slot'].forEach(id=>document.getElementById(id).value='');
-  for(let i=1;i<=34;i++){document.getElementById('s'+i).value='';document.getElementById('e'+i).value='';document.getElementById('r'+i).textContent='Sold: 0 = $0.00';}
+  for(let i=1;i<=34;i++){document.getElementById('s'+i).value='';document.getElementById('e'+i).value='';document.getElementById('r'+i).textContent='Sold: 0 tickets = $0.00';document.getElementById('sold-bdg-'+i).style.display='none';}
   calc();
 }
-
 function endShift(){
   if(!confirm('End shift and return to login?'))return;
   cashier='';pinN='';pinE='';logs=[];
