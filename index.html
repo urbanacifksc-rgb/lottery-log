@@ -191,7 +191,7 @@ input[type="file"]{display:none}
 
 <!-- SCRATCH-OFF BOOKS -->
 <div class="card">
-<h2>Scratch-Off Books (34 Games)</h2>
+<h2>Scratch-Off Books (33 Games)</h2>
 <div class="collapse-bar">
 <span>Tap a book to expand. Scan barcode to auto-fill.</span>
 <button class="mini-btn" onclick="expandAll()">Expand All</button>
@@ -206,16 +206,21 @@ input[type="file"]{display:none}
 
 <!-- CASH & DEBIT -->
 <div class="card">
-<h2>Cash and Debit Totals</h2>
+<h2>Cash, Debit and Pay In Totals</h2>
 <div class="form-row">
 <div class="form-group">
-<label>Cash Slot Total ($)</label>
+<label>Cash Total ($)</label>
 <input type="number" id="cash-slot" step="0.01" placeholder="0.00" oninput="calc()">
 <div class="neg-hint">Negative allowed</div>
 </div>
 <div class="form-group">
-<label>Debit Slot Total ($)</label>
+<label>Debit Total ($)</label>
 <input type="number" id="debit-slot" step="0.01" placeholder="0.00" oninput="calc()">
+<div class="neg-hint">Negative allowed</div>
+</div>
+<div class="form-group">
+<label>Pay In ($)</label>
+<input type="number" id="pay-in" step="0.01" placeholder="0.00" oninput="calc()">
 <div class="neg-hint">Negative allowed</div>
 </div>
 </div>
@@ -228,8 +233,9 @@ input[type="file"]{display:none}
 <div class="total-box"><div class="label">Scratch-Off</div><div class="value" id="s-scratch">$0.00</div></div>
 <div class="total-box"><div class="label">Online Sales</div><div class="value" id="s-online">$0.00</div></div>
 <div class="total-box"><div class="label">Cash Drop</div><div class="value" id="s-drop">$0.00</div></div>
-<div class="total-box"><div class="label">Cash Slot</div><div class="value" id="s-cash">$0.00</div></div>
-<div class="total-box"><div class="label">Debit Slot</div><div class="value" id="s-debit">$0.00</div></div>
+<div class="total-box"><div class="label">Cash Total</div><div class="value" id="s-cash">$0.00</div></div>
+<div class="total-box"><div class="label">Debit Total</div><div class="value" id="s-debit">$0.00</div></div>
+<div class="total-box"><div class="label">Pay In</div><div class="value" id="s-payin">$0.00</div></div>
 <div class="total-box grand"><div class="label">Grand Total</div><div class="value" id="grand">$0.00</div></div>
 </div>
 <div class="btn-row">
@@ -308,7 +314,7 @@ function launch(i){
 function buildBooks(){
   const list=document.getElementById('book-list');
   list.innerHTML='';
-  for(let i=1;i<=34;i++){
+  for(let i=1;i<=33;i++){
     const row=document.createElement('div');
     row.className='book-row';
     row.id='book-row-'+i;
@@ -346,8 +352,8 @@ function toggleBook(i){
   body.classList.toggle('open',!isOpen);
   chev.classList.toggle('open',!isOpen);
 }
-function expandAll(){for(let i=1;i<=34;i++){document.getElementById('book-body-'+i).classList.add('open');document.getElementById('chev-'+i).classList.add('open');}}
-function collapseAll(){for(let i=1;i<=34;i++){document.getElementById('book-body-'+i).classList.remove('open');document.getElementById('chev-'+i).classList.remove('open');}}
+function expandAll(){for(let i=1;i<=33;i++){document.getElementById('book-body-'+i).classList.add('open');document.getElementById('chev-'+i).classList.add('open');}}
+function collapseAll(){for(let i=1;i<=33;i++){document.getElementById('book-body-'+i).classList.remove('open');document.getElementById('chev-'+i).classList.remove('open');}}
 
 function buildDenoms(i){
   const c=document.getElementById('db-'+i);
@@ -381,12 +387,13 @@ function cs(i){
 
 function calc(){
   let sc=0;
-  for(let i=1;i<=34;i++){const sv=+document.getElementById('s'+i)?.value||0;const ev=+document.getElementById('e'+i)?.value||0;sc+=(sv-ev)*gd(i);}
+  for(let i=1;i<=33;i++){const sv=+document.getElementById('s'+i)?.value||0;const ev=+document.getElementById('e'+i)?.value||0;sc+=(sv-ev)*gd(i);}
   const on=+document.getElementById('online-sales')?.value||0;
   const cd=+document.getElementById('cash-drop')?.value||0;
   const cs2=+document.getElementById('cash-slot')?.value||0;
   const ds=+document.getElementById('debit-slot')?.value||0;
-  const grand=sc+on+cd+cs2+ds;
+  const pi=+document.getElementById('pay-in')?.value||0;
+  const grand=sc+on+cd+cs2+ds+pi;
   const f=v=>v<0?'-$'+Math.abs(v).toFixed(2):'$'+v.toFixed(2);
   document.getElementById('total-scratch').textContent=f(sc);
   document.getElementById('s-scratch').textContent=f(sc);
@@ -394,6 +401,7 @@ function calc(){
   document.getElementById('s-drop').textContent=f(cd);
   document.getElementById('s-cash').textContent=f(cs2);
   document.getElementById('s-debit').textContent=f(ds);
+  document.getElementById('s-payin').textContent=f(pi);
   document.getElementById('grand').textContent=f(grand);
 }
 
@@ -480,8 +488,8 @@ function renderLogs(){
 }
 function clearAll(){
   if(!confirm('Clear all entries for a new log entry?'))return;
-  ['cash-drop','online-sales','cash-slot','debit-slot'].forEach(id=>document.getElementById(id).value='');
-  for(let i=1;i<=34;i++){document.getElementById('s'+i).value='';document.getElementById('e'+i).value='';document.getElementById('r'+i).textContent='Sold: 0 tickets = $0.00';document.getElementById('sold-bdg-'+i).style.display='none';}
+  ['cash-drop','online-sales','cash-slot','debit-slot','pay-in'].forEach(id=>document.getElementById(id).value='');
+  for(let i=1;i<=33;i++){document.getElementById('s'+i).value='';document.getElementById('e'+i).value='';document.getElementById('r'+i).textContent='Sold: 0 tickets = $0.00';document.getElementById('sold-bdg-'+i).style.display='none';}
   calc();
 }
 function endShift(){
