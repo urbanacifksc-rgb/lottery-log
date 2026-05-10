@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lottery Shift Log</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
+.header { background: linear-gradient(135deg,#16213e,#0f3460); padding: 15px 20px; text-align: center; border-bottom: 3px solid #e94560; }
+.header h1 { color: #e94560; font-size: 1.8em; letter-spacing: 2px; }
+.header p { color: #a8b2d8; font-size: 0.85em; margin-top: 4px; }
+.container { max-width: 900px; margin: 0 auto; padding: 15px; }
+.card { background: #16213e; border: 1px solid #0f3460; border-radius: 10px; padding: 18px; margin-bottom: 15px; }
+.card h2 { color: #e94560; font-size: 1em; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; }
+.form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.form-group { flex: 1; min-width: 140px; }
+.form-group label { display: block; font-size: 0.75em; color: #a8b2d8; margin-bottom: 4px; text-transform: uppercase; }
+.form-group input, .form-group select { width: 100%; padding: 8px 10px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; color: #eee; font-size: 0.9em; }
+.scratch-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 10px; }
+.scratch-item { background: #0f3460; border: 1px solid #1a4a8a; border-radius: 8px; padding: 12px; }
+.game-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.game-num { background: #e94560; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: bold; flex-shrink: 0; }
+.game-title { font-size: 0.8em; color: #a8b2d8; font-weight: bold; }
+.game-denom { font-size: 0.75em; color: #e94560; }
+.barcode-section { display: flex; gap: 10px; flex-wrap: wrap; }
+.barcode-upload { flex: 1; min-width: 200px; }
+.barcode-preview { flex: 1; min-width: 200px; text-align: center; }
+.barcode-preview img { max-width: 100%; max-height: 120px; border-radius: 6px; border: 1px solid #1a4a8a; }
+.upload-btn { display: inline-block; padding: 8px 14px; background: #e94560; color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.8em; text-align: center; width: 100%; margin-bottom: 8px; }
+input[type="file"] { display: none; }
+.totals-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 10px; }
+.total-box { background: #0f3460; border-radius: 8px; padding: 14px; text-align: center; }
+.total-box .label { font-size: 0.75em; color: #a8b2d8; text-transform: uppercase; margin-bottom: 6px; }
+.total-box .value { font-size: 1.4em; font-weight: bold; color: #4ecca3; }
+.total-box.grand { border: 2px solid #e94560; }
+.total-box.grand .value { color: #e94560; font-size: 1.6em; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
+.btn-primary { background: #e94560; color: #fff; }
+.btn-secondary { background: #0f3460; color: #eee; border: 1px solid #1a4a8a; }
+.btn-success { background: #4ecca3; color: #16213e; }
+#login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.login-card { background: #16213e; border: 1px solid #e94560; border-radius: 12px; padding: 30px; max-width: 360px; width: 90%; text-align: center; }
+.login-card h2 { color: #e94560; margin-bottom: 6px; }
+.login-card p { color: #a8b2d8; font-size: 0.85em; margin-bottom: 16px; }
+.login-card input { width: 100%; padding: 10px; margin-bottom: 12px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; color: #eee; font-size: 0.9em; text-align: center; }
+.pin-dots { font-size: 2em; letter-spacing: 8px; color: #e94560; min-height: 40px; margin-bottom: 12px; }
+.pin-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.pin-key { padding: 14px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; cursor: pointer; font-size: 1em; color: #eee; font-weight: bold; }
+.pin-key.clear { color: #e94560; }
+.mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-tab { flex: 1; padding: 8px; background: #0f3460; border: 1px solid #1a4a8a; border-radius: 6px; cursor: pointer; font-size: 0.85em; color: #a8b2d8; text-align: center; }
+.mode-tab.active { background: #e94560; border-color: #e94560; color: #fff; }
+.scratch-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.calc-result { background: #0f3460; border-radius: 6px; padding: 6px 10px; font-size: 0.8em; color: #4ecca3; margin-top: 4px; }
+.denom-select { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.denom-btn { padding: 3px 8px; border: 1px solid #1a4a8a; background: #16213e; color: #a8b2d8; border-radius: 4px; cursor: pointer; font-size: 0.72em; }
+.denom-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+.neg-hint { font-size: 0.7em; color: #a8b2d8; margin-top: 3px; }
+@media(max-width:500px){.form-row{flex-direction:column}.scratch-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="login-screen">
+<div class="login-card">
+<h2>Lottery Shift Log</h2>
+<p>Enter initials and PIN to begin</p>
+<div class="mode-tabs">
+<div class="mode-tab active" onclick="setMode('new')" id="tab-new">New Shift</div>
+<div class="mode-tab" onclick="setMode('existing')" id="tab-existing">Returning</div>
+</div>
+<div id="login-new">
+<input type="text" id="init-input" placeholder="Initials (e.g. JD)" maxlength="4" style="text-transform:uppercase">
+<p style="font-size:0.78em;color:#a8b2d8;margin-bottom:8px">Create a 4-digit PIN:</p>
+<div class="pin-dots" id="dots-new">. . . .</div>
+<div class="pin-pad" id="pad-new"></div>
+<button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="startNew()">Start Shift</button>
+</div>
+<div id="login-existing" style="display:none">
+<input type="text" id="ret-input" placeholder="Initials" maxlength="4" style="text-transform:uppercase">
+<p style="font-size:0.78em;color:#a8b2d8;margin-bottom:8px">Enter your PIN:</p>
+<div class="pin-dots" id="dots-existing">. . . .</div>
+<div class="pin-pad" id="pad-existing"></div>
+<button class="btn btn-secondary" style="width:100%;margin-top:6px" onclick="loginRet()">Sign In</button>
+</div>
+<div id="login-err" style="color:#e94560;font-size:0.8em;margin-top:8px;display:none"></div>
+</div>
+</div>
+<div id="main-app" style="display:none">
+<div class="header">
+<h1>LOTTERY SHIFT LOG</h1>
+<p id="banner">Cashier: -- | Started: --</p>
+</div>
+<div class="container">
+<div class="card">
+<h2>Scratch-Off Barcode Photo</h2>
+<div class="barcode-section">
+<div class="barcode-upload">
+<p style="font-size:0.8em;color:#a8b2d8;margin-bottom:8px">Capture or upload the scratch-off book barcode photo.</p>
+<label class="upload-btn" for="bc-input">Take / Upload Photo</label>
+<input type="file" id="bc-input" accept="image/*" capture="environment" onchange="showBarcode(event)">
+<button class="btn btn-secondary" style="width:100%;font-size:0.8em" onclick="clearBarcode()">Clear Photo</button>
+</div>
+<div id="bc-preview" style="flex:1;min-width:200px;text-align:center">
+<p style="font-size:0.75em;color:#a8b2d8">No photo yet</p>
+</div>
+</div>
+</div>
+<div class="card">
+<h2>Shift Info</h2>
+<div class="form-row">
+<div class="form-group">
+<label>Cashier Initials</label>
+<input type="text" id="disp-initials" readonly style="font-weight:bold;color:#4ecca3">
+</div>
+<div class="form-group">
+<label>Date</label>
+<input type="date" id="shift-date">
+</div>
+<div class="form-group">
+<label>Shift</label>
+<select id="shift-period">
+<option>Morning</option><option>Afternoon</option><option>Evening</option><option>Night</option>
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Cash Drop / Pay In ($)</label>
+<input type="number" id="cash-drop" step="0.01" placeholder="0.00" oninput="calc()">
+<div class="neg-hint">Negative allowed for adjustments</div>
+</div>
+<div class="form-group">
+<label>Total Online Sales ($)</label>
+<input type="number" id="online-sales" step="0.01" placeholder="0.00" oninput="calc()">
+<div class="neg-hint">Negative allowed</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h2>Scratch-Off Books (34 Games)</h2>
+<p style="font-size:0.75em;color:#a8b2d8;margin-bottom:12px">Select denomination, enter start and end ticket numbers. Total Sold = Start minus End.</p>
+<div class="scratch-grid" id="scratch-grid"></div>
+<div style="margin-top:14px;background:#0f3460;border-radius:8px;padding:14px;text-align:center">
+<div style="font-size:0.75em;color:#a8b2d8;text-transform:uppercase;margin-bottom:6px">Total Scratch-Off Sold</div>
+<div style="font-size:1.6em;font-weight:bold;color:#4ecca3" id="total-scratch">$0.00</div>
+</div>
+</div>
+<div class="card">
+<h2>Cash and Debit Totals</h2>
+<div class="form-row">
+<div class="form-group">
+<label>Cash Slot Total ($)</label>
+<input type="number" id="cash-slot" step="0.01" placeholder="0.00" oninput="calc()">
+<div class="neg-hint">Negative allowed</div>
+</div>
+<div class="form-group">
+<label>Debit Slot Total ($)</label>
+<input type="number" id="debit-slot" step="0.01" placeholder="0.00" oninput="calc()">
+<div class="neg-hint">Negative allowed</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h2>Shift Totals Summary</h2>
+<div class="totals-grid">
+<div class="total-box"><div class="label">Scratch-Off</div><div class="value" id="s-scratch">$0.00</div></div>
+<div class="total-box"><div class="label">Online Sales</div><div class="value" id="s-online">$0.00</div></div>
+<div class="total-box"><div class="label">Cash Drop</div><div class="value" id="s-drop">$0.00</div></div>
+<div class="total-box"><div class="label">Cash Slot</div><div class="value" id="s-cash">$0.00</div></div>
+<div class="total-box"><div class="label">Debit Slot</div><div class="value" id="s-debit">$0.00</div></div>
+<div class="total-box grand"><div class="label">Grand Total</div><div class="value" id="grand">$0.00</div></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="saveLog()">Save Log</button>
+<button class="btn btn-success" onclick="window.print()">Print</button>
+<button class="btn btn-secondary" onclick="clearAll()">New Entry</button>
+<button class="btn btn-secondary" onclick="endShift()">End Shift</button>
+</div>
+</div>
+<div class="card" id="logs-card" style="display:none">
+<h2>Saved Logs This Shift</h2>
+<div id="logs-list"></div>
+</div>
+</div>
+</div>
+<script>
+const DENOMS=[1,2,3,5,10,20,25,30,50];
+let pinN='',pinE='',cashier='';
+let users=JSON.parse(localStorage.getItem('lu')||'{}');
+let logs=[];
+
+function mkPad(id,dotsId,type,done){
+  const p=document.getElementById(id);
+  ['1','2','3','4','5','6','7','8','9','C','0','OK'].forEach(k=>{
+    const b=document.createElement('button');
+    b.className='pin-key'+(k==='C'?' clear':'');
+    b.textContent=k;
+    b.onclick=()=>{
+      if(k==='OK'){done();return;}
+      if(type==='n'){
+        if(k==='C')pinN=pinN.slice(0,-1);
+        else if(pinN.length<4)pinN+=k;
+        upd(dotsId,pinN);
+      }else{
+        if(k==='C')pinE=pinE.slice(0,-1);
+        else if(pinE.length<4)pinE+=k;
+        upd(dotsId,pinE);
+      }
+    };
+    p.appendChild(b);
+  });
+}
+
+function upd(id,pin){document.getElementById(id).textContent='*'.repeat(pin.length)+'. '.repeat(4-pin.length).trim();}
+
+function setMode(m){
+  document.getElementById('tab-new').classList.toggle('active',m==='new');
+  document.getElementById('tab-existing').classList.toggle('active',m==='existing');
+  document.getElementById('login-new').style.display=m==='new'?'block':'none';
+  document.getElementById('login-existing').style.display=m==='existing'?'block':'none';
+  document.getElementById('login-err').style.display='none';
+}
+
+function err(msg){const e=document.getElementById('login-err');e.textContent=msg;e.style.display='block';}
+
+function startNew(){
+  const i=document.getElementById('init-input').value.trim().toUpperCase();
+  if(!i)return err('Enter your initials.');
+  if(pinN.length!==4)return err('Enter a 4-digit PIN.');
+  users[i]=pinN;localStorage.setItem('lu',JSON.stringify(users));
+  launch(i);
+}
+
+function loginRet(){
+  const i=document.getElementById('ret-input').value.trim().toUpperCase();
+  if(!i)return err('Enter your initials.');
+  if(!users[i])return err('Not found. Use New Shift tab.');
+  if(users[i]!==pinE)return err('Wrong PIN.');
+  pinE='';document.getElementById('dots-existing').textContent='. . . .';
+  launch(i);
+}
+
+function launch(i){
+  cashier=i;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  document.getElementById('disp-initials').value=i;
+  document.getElementById('banner').textContent='Cashier: '+i+' | Started: '+new Date().toLocaleString();
+  document.getElementById('shift-date').value=new Date().toISOString().split('T')[0];
+  buildGrid();calc();
+}
+
+function buildGrid(){
+  const g=document.getElementById('scratch-grid');g.innerHTML='';
+  for(let i=1;i<=34;i++){
+    const d=document.createElement('div');d.className='scratch-item';
+    d.innerHTML='<div class="game-header"><div class="game-num">'+i+'</div><div><div class="game-title">Book #'+i+'</div><div class="game-denom" id="dl-'+i+'">$1</div></div></div><div class="denom-select" id="db-'+i+'"></div><div class="scratch-pair"><div class="form-group"><label>Start #</label><input type="number" id="s'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div><div class="form-group"><label>End #</label><input type="number" id="e'+i+'" placeholder="0" min="0" oninput="cs('+i+')"></div></div><div class="calc-result" id="r'+i+'">Sold: 0 = $0.00</div>';
+    g.appendChild(d);
+    const c=document.getElementById('db-'+i);
+    DENOMS.forEach(dn=>{
+      const b=document.createElement('button');
+      b.className='denom-btn'+(dn===1?' active':'');
+      b.textContent='$'+dn;
+      b.onclick=()=>{c.querySelectorAll('.denom-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('dl-'+i).textContent='$'+dn;cs(i);};
+      c.appendChild(b);
+    });
+  }
+}
+
+function gd(i){const b=document.querySelector('#db-'+i+' .denom-btn.active');return b?+b.textContent.slice(1):1;}
+
+function cs(i){
+  const s=+document.getElementById('s'+i).value||0;
+  const e=+document.getElementById('e'+i).value||0;
+  const sold=s-e;
+  document.getElementById('r'+i).textContent='Sold: '+sold+' = $'+(sold*gd(i)).toFixed(2);
+  calc();
+}
+
+function calc(){
+  let sc=0;
+  for(let i=1;i<=34;i++){sc+=(+document.getElementById('s'+i)?.value||0)-(+document.getElementById('e'+i)?.value||0);sc=sc;} 
+  sc=0;
+  for(let i=1;i<=34;i++){const sv=+document.getElementById('s'+i)?.value||0;const ev=+document.getElementById('e'+i)?.value||0;sc+=(sv-ev)*gd(i);}
+  const on=+document.getElementById('online-sales')?.value||0;
+  const cd=+document.getElementById('cash-drop')?.value||0;
+  const cs2=+document.getElementById('cash-slot')?.value||0;
+  const ds=+document.getElementById('debit-slot')?.value||0;
+  const grand=sc+on+cd+cs2+ds;
+  const f=v=>v<0?'-$'+Math.abs(v).toFixed(2):'$'+v.toFixed(2);
+  document.getElementById('total-scratch').textContent=f(sc);
+  document.getElementById('s-scratch').textContent=f(sc);
+  document.getElementById('s-online').textContent=f(on);
+  document.getElementById('s-drop').textContent=f(cd);
+  document.getElementById('s-cash').textContent=f(cs2);
+  document.getElementById('s-debit').textContent=f(ds);
+  document.getElementById('grand').textContent=f(grand);
+}
+
+function showBarcode(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById('bc-preview').innerHTML='<img src="'+e.target.result+'" alt="Barcode"><p style="font-size:0.7em;color:#a8b2d8;margin-top:4px">'+file.name+'</p>';};
+  r.readAsDataURL(file);
+}
+function clearBarcode(){document.getElementById('bc-input').value='';document.getElementById('bc-preview').innerHTML='<p style="font-size:0.75em;color:#a8b2d8">No photo yet</p>';}
+
+function saveLog(){
+  const entry={cashier,date:document.getElementById('shift-date').value,shift:document.getElementById('shift-period').value,drop:document.getElementById('cash-drop').value,online:document.getElementById('online-sales').value,cash:document.getElementById('cash-slot').value,debit:document.getElementById('debit-slot').value,grand:document.getElementById('grand').textContent,time:new Date().toLocaleString()};
+  logs.push(entry);renderLogs();
+  alert('Saved! '+entry.cashier+' | '+entry.grand);
+}
+
+function renderLogs(){
+  document.getElementById('logs-card').style.display='block';
+  document.getElementById('logs-list').innerHTML=logs.map((e,i)=>'<div style="background:#0f3460;border-radius:6px;padding:10px;margin-bottom:8px;font-size:0.82em"><strong style="color:#4ecca3">#'+(i+1)+' '+e.cashier+' | '+e.date+' '+e.shift+'</strong><span style="float:right;color:#e94560;font-weight:bold">'+e.grand+'</span><br><span style="color:#a8b2d8">Drop:'+e.drop+' Online:'+e.online+' Cash:'+e.cash+' Debit:'+e.debit+'</span><br><span style="color:#555;font-size:0.85em">'+e.time+'</span></div>').join('');
+}
+
+function clearAll(){
+  if(!confirm('Clear for new entry?'))return;
+  ['cash-drop','online-sales','cash-slot','debit-slot'].forEach(id=>document.getElementById(id).value='');
+  for(let i=1;i<=34;i++){document.getElementById('s'+i).value='';document.getElementById('e'+i).value='';document.getElementById('r'+i).textContent='Sold: 0 = $0.00';}
+  calc();
+}
+
+function endShift(){
+  if(!confirm('End shift and return to login?'))return;
+  cashier='';pinN='';pinE='';logs=[];
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('init-input').value='';
+  document.getElementById('dots-new').textContent='. . . .';
+  document.getElementById('login-err').style.display='none';
+  setMode('new');
+}
+
+mkPad('pad-new','dots-new','n',startNew);
+mkPad('pad-existing','dots-existing','e',loginRet);
+</script>
+</body>
+</html>
